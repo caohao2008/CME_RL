@@ -1,16 +1,16 @@
 import os
 import sys
        
-def print_state_action_detail(action_list):
+def print_state_action_detail(state,action_list):
     for action in action_list:
-        sa = state+"_"+action
+        sa = state+";"+action
         if(samap_average.has_key(sa)):
             print " " + action+" "+str(samap_average[sa])+" "+str(samap[sa])
 
-def check_state(action_list,min_test_time):
+def check_state(state,action_list,min_test_time):
     result = 1
     for action in action_list:
-        sa = state+"_"+action
+        sa = state+";"+action
         if(samap_average.has_key(sa)):
             #print " " + action+" "+str(samap_average[sa])+" "+str(samap[sa])
             if(samap[sa]<min_test_time):
@@ -19,22 +19,43 @@ def check_state(action_list,min_test_time):
             result = 0
     return result
 
-def update_probability_topn(topn):
-    sum = 0
+def update_probability_topn(state,action_list,topn):
+    topn_sum = 0
+    current_state_dis={}
+    
+    sorted_actions = sorted(samap_average.items(),key=lambda item:float(item[1]))
+    print "====="
     for action in action_list:
-        sa = state+"_"+action
-        if(samap_average.has_key(sa)):
-            #print " " + action+" "+str(samap_average[sa])+" "+str(samap[sa])
-            if(samap[sa]<min_test_time):
-                result = 0
+        sa = state+";"+action
+        #print state,action
+        current_state_dis[sa]=samap_average[sa]
+        probability_trans[sa]=0
+    sorted_actions = sorted(current_state_dis.items(),key=lambda item:float(-1*item[1]))
+   
+    cur_n=0
+    for sa,value in sorted_actions:
+        cur_n+=1
+        if cur_n<=topn:
+            print sa,value,cur_n
+            topn_sum+=value
         else:
-            result = 0
-    return result
+            break
+    print topn_sum
+    cur_n=0
+    for sa,value in sorted_actions:
+        cur_n+=1
+        if cur_n<=topn:
+            probability_trans[sa]=current_state_dis[sa]/topn_sum
+            print sa,probability_trans[sa]
+        else:
+            break
+    return 
 
 
 
 samap={}
 samap_average={}
+probability_trans={}
 action_list=set()
 state_set=set()
 for line in open("part-00000"):
@@ -50,7 +71,7 @@ for line in open("part-00000"):
     endmark = cols[4]
     state = cols[5]
     
-    state_action = state+"_"+action
+    state_action = state+";"+action
     
     action_list.add(action)
     state_set.add(state)
@@ -70,11 +91,12 @@ print samap_average
 for state in state_set:
     print state
     #check whether current state is exploid fully: 1.All the action has been tested 2.Each action satisfy minimal test time
-    if check_state(action_list,1):
+    if check_state(state,action_list,1):
         #if explore fully, update probability
-        print_state_action_detail(action_list)
-        update_probability_topn(4)
+        print_state_action_detail(state,action_list)
+        update_probability_topn(state,action_list,4)
     ##else:
         #print reason for check_state failed
-    ##    print_state_action_detail(action_list)
+    ##    print_state_action_detail(state,action_list)
 
+print probability_trans
