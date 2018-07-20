@@ -78,7 +78,7 @@ for line in sys.stdin:
     state_set.add(state)
     
     if not samap.has_key(state_action):
-        samap[state_action]=1
+        samap[state_action]=0
         samap_average[state_action]=0
     k=samap[state_action]
     #calculate average reward in state s when using action a
